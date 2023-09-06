@@ -19,7 +19,7 @@ class Formulario extends Component {
         number: nanoid(),
       },
       errors: {
-        name: '',
+        name: ' ',
         number: '',
       },
     };
