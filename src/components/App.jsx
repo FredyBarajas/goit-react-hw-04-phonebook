@@ -1,78 +1,59 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import Formulario from './Formulario/Formulario';
 import ListContacts from './ListContacs/ListContacs';
 import { AppInput, AppDiv, AppTitle } from './StyledApp';
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      contacts: [],
-      searchTerm: '',
-    };
-  }
+const App = () => {
+  const [contacts, setContacts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  componentDidMount() {
-    let localContacts = JSON.parse(localStorage.getItem('localContacts'));
-    console.log(localContacts);
-    console.log(this.state.contacts);
+  const addContact = newContact => {
+    setContacts(prevContacts => [...prevContacts, newContact]);
+    console.log(contacts);
+  };
+
+  useEffect(() => {
+    const localContacts = JSON.parse(localStorage.getItem('localContacts'));
     if (localContacts) {
-      this.setState({ contacts: localContacts });
+      setContacts(localContacts);
     }
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      Array.isArray(this.state.contacts) &&
-      this.state.contacts !== prevState.contacts
-    ) {
-      localStorage.setItem(
-        'localContacts',
-        JSON.stringify(this.state.contacts)
-      );
-    }
-  }
-  addContact = newContact => {
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts, newContact],
-    }));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('localContacts', JSON.stringify(contacts));
+  }, [contacts]);
+
+  const deleteContact = index => {
+    setContacts(prevContacts => prevContacts.filter((_, i) => i !== index));
   };
 
-  deleteContact = index => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter((_, i) => i !== index),
-    }));
+  const handleSearch = event => {
+    setSearchTerm(event.target.value);
   };
 
-  handleSearch = event => {
-    this.setState({ searchTerm: event.target.value });
-  };
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  render() {
-    const { contacts, searchTerm } = this.state;
-
-    const filteredContacts = contacts.filter(contact =>
-      contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    return (
-      <>
-        <AppDiv>
-          <h1>PhoneBook</h1>
-          <Formulario addContact={this.addContact} contacts={contacts} />
-          <AppInput
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={this.handleSearch}
-          />
-        </AppDiv>
-        <AppTitle>List Contacts</AppTitle>
-        <ListContacts
-          contacts={filteredContacts}
-          onDeleteContact={this.deleteContact}
+  return (
+    <>
+      <AppDiv>
+        <h1>PhoneBook</h1>
+        <Formulario addContact={addContact} contacts={contacts} />
+        <AppInput
+          type="text"
+          placeholder="Search..."
+          value={searchTerm}
+          onChange={handleSearch}
         />
-      </>
-    );
-  }
-}
+      </AppDiv>
+      <AppTitle>List Contacts</AppTitle>
+      <ListContacts
+        contacts={filteredContacts}
+        onDeleteContact={deleteContact}
+      />
+    </>
+  );
+};
 
 export default App;

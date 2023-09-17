@@ -1,43 +1,33 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { nanoid } from 'nanoid';
 import PropTypes from 'prop-types';
 import { Form, FormLabel, FormInput, Formbutton } from './StyledFormulario';
 
-class Formulario extends Component {
-  static propTypes = {
-    addContact: PropTypes.func,
-    contacts: PropTypes.array,
-  };
-
-  constructor(props) {
-    super(props);
-    this.state = {
+const Formulario = ({ addContact, contacts }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    number: '',
+    errors: {
       name: '',
       number: '',
-      inputIds: {
-        name: nanoid(),
-        number: nanoid(),
-      },
-      errors: {
-        name: ' ',
-        number: '',
-      },
-    };
-  }
+    },
+  });
 
-  handleInputChange = event => {
+  const handleInputChange = event => {
     const { name, value } = event.target;
-    this.setState({ [name]: value });
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  handleSubmit = event => {
+  const handleSubmit = event => {
     event.preventDefault();
-    const { name, number } = this.state;
+    const { name, number } = formData;
 
     let nameError = '';
     let numberError = '';
 
-    const { contacts } = this.props;
     if (contacts.some(contact => contact.name === name)) {
       alert('El nombre ya existe en la lista de contactos.');
       return;
@@ -64,50 +54,60 @@ class Formulario extends Component {
     }
 
     if (nameError || numberError) {
-      this.setState({
+      setFormData({
+        ...formData,
         errors: {
           name: nameError,
           number: numberError,
         },
       });
     } else {
-      this.props.addContact({ name, number });
-      this.setState({ name: '', number: '', errors: { name: '', number: '' } });
+      addContact({ name, number });
+      setFormData({
+        name: '',
+        number: '',
+        errors: {
+          name: '',
+          number: '',
+        },
+      });
     }
   };
 
-  render() {
-    const { name, number, errors, inputIds } = this.state;
-    return (
-      <Form onSubmit={this.handleSubmit}>
-        <FormLabel htmlFor={inputIds.name}>
-          Name
-          <FormInput
-            type="text"
-            name="name"
-            value={name}
-            id={inputIds.name}
-            onChange={this.handleInputChange}
-          />
-        </FormLabel>
-        {errors.name && <div style={{ color: 'red' }}>{errors.name}</div>}
-        <br />
-        <FormLabel htmlFor={inputIds.number}>
-          Telephone
-          <FormInput
-            type="tel"
-            name="number"
-            value={number}
-            onChange={this.handleInputChange}
-            id={inputIds.number}
-          />
-        </FormLabel>
-        {errors.number && <div style={{ color: 'red' }}>{errors.number}</div>}
-        <br />
-        <Formbutton type="submit">Add</Formbutton>
-      </Form>
-    );
-  }
-}
+  const { name, number, errors } = formData;
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <FormLabel>
+        Name
+        <FormInput
+          type="text"
+          name="name"
+          value={name}
+          onChange={handleInputChange}
+        />
+      </FormLabel>
+      {errors.name && <div style={{ color: 'red' }}>{errors.name}</div>}
+      <br />
+      <FormLabel>
+        Telephone
+        <FormInput
+          type="tel"
+          name="number"
+          value={number}
+          onChange={handleInputChange}
+        />
+      </FormLabel>
+      {errors.number && <div style={{ color: 'red' }}>{errors.number}</div>}
+      <br />
+      <Formbutton type="submit">Add</Formbutton>
+    </Form>
+  );
+};
+
+Formulario.propTypes = {
+  addContact: PropTypes.func,
+  contacts: PropTypes.array,
+};
 
 export default Formulario;
